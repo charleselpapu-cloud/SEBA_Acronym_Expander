@@ -9,10 +9,10 @@ INPUT = "point_names.csv"
 OUTPUT = "expanded_points.csv"
 EXAMPLES = "SEBA_examples.txt"
 
-URL = "http://localhost:1234/v1/chat/completions"
+URL = ""
 
 # Use exact name from LM Studio /v1/models
-MODEL = "google/gemma-4-e4b"
+MODEL = ""
 
 BATCH = 25
 
