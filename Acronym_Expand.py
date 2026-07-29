@@ -14,7 +14,7 @@ URL = ""
 # Use exact name from LM Studio /v1/models
 MODEL = ""
 
-BATCH = 25
+BATCH = 20
 
 # Number of similar SEBA examples to provide
 SIMILAR_EXAMPLES = 10
@@ -272,9 +272,6 @@ def ask(points):
 
 
     prompt = build_prompt(points)
-    print("\n------ RETRIEVED EXAMPLES ------")
-    print(prompt)
-    print("-------------------------------")
 
     text = "\n".join(
         row["Point Name"]
@@ -306,22 +303,6 @@ def ask(points):
     }
 
 
-    print("\n------ DEBUG ------")
-    print(
-        "Prompt chars:",
-        len(prompt)
-    )
-
-    print(
-        "Input:",
-        text
-    )
-
-    print(
-        "------------------"
-    )
-
-
     response = requests.post(
         URL,
         json=payload
@@ -337,10 +318,6 @@ def ask(points):
 
 
     answer = response.json()["choices"][0]["message"]["content"]
-
-
-    print("\nMODEL OUTPUT:")
-    print(answer)
 
 
     results = [
@@ -382,6 +359,75 @@ if "Expanded Name" not in rows[0]:
 
         row["Expanded Name"] = ""
 
+
+
+def save_rows():
+
+    with open(
+        OUTPUT,
+        "w",
+        newline="",
+        encoding="utf-8"
+    ) as f:
+
+        writer = csv.DictWriter(
+            f,
+            fieldnames=rows[0].keys()
+        )
+
+        writer.writeheader()
+        writer.writerows(rows)
+
+
+    print("Progress saved")
+
+
+
+def process_rows(rows_to_process, batch_size):
+
+    todo = [
+        row
+        for row in rows_to_process
+        if not row["Expanded Name"].strip()
+    ]
+
+    if not todo:
+        return
+
+    current_batch = todo[:batch_size]
+
+    expansions = ask(current_batch)
+
+    for row, expansion in zip(
+        current_batch,
+        expansions
+    ):
+
+        row["Expanded Name"] = expansion
+
+    save_rows()
+
+    incomplete = [
+        row
+        for row in current_batch
+        if not row["Expanded Name"].strip()
+    ]
+
+    if incomplete and batch_size > 1:
+
+        smaller_batch = max(1, batch_size // 2)
+
+        print(
+            f"Retrying {len(incomplete)} incomplete rows "
+            f"with batch size {smaller_batch}"
+        )
+
+        process_rows(incomplete, smaller_batch)
+
+    remaining = todo[batch_size:]
+
+    if remaining:
+        process_rows(remaining, batch_size)
 
 
 # ----------------------------------------
@@ -431,42 +477,7 @@ for i in range(
 
 
 
-    expansions = ask(todo)
-
-
-
-    for row, expansion in zip(
-        todo,
-        expansions
-    ):
-
-        row["Expanded Name"] = expansion
-
-
-
-    with open(
-        OUTPUT,
-        "w",
-        newline="",
-        encoding="utf-8"
-    ) as f:
-
-
-        writer = csv.DictWriter(
-            f,
-            fieldnames=rows[0].keys()
-        )
-
-
-        writer.writeheader()
-
-        writer.writerows(rows)
-
-
-
-    print(
-        "Progress saved"
-    )
+    process_rows(batch, BATCH)
 
 
 
