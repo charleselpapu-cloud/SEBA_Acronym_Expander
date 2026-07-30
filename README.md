@@ -1,18 +1,33 @@
-# SEBA_Acronym_Expander
-Expands SEBA point names into readable descriptions using a local LLM.
+# SEBA Point Expansion
+
+Expands Schneider Electric SEBA point names into readable descriptions using Python acronym replacement.
+
+## Workflow
+
+1. Python replaces known SEBA acronyms using `acronyms.txt`.
+2. Unknown abbreviations are preserved for review.
 
 ## Files
 
-Input:
-- `point_names.csv` - Points to expand
-- `SEBA_examples.txt` - Known SEBA mappings
+### Input
+- `point_names.csv` - SEBA point names to expand
+- `Known_Acronyms.txt` - Known SEBA acronym mappings
 
-Output:
-- `expanded_points.csv`
 
-## Format
+### Output
+- `expanded_points.csv` - Contains partial and final expansions
 
-SEBA examples:
-Fcu1OaDprPosSptMin = Fan Coil Unit 1 Outside Air Damper Minimum Position Setpoint
+## Acronym File Format
 
-A Python-based tool that uses a local LLM to expand Schneider Electric SEBA point names into readable descriptions. It retrieves similar SEBA examples as context, allowing the model to infer accurate HVAC/BMS terminology while avoiding large prompt sizes.
+`acronyms.txt`
+
+```python
+{
+    "ActvScn": "Active Scene",
+    "Afdd": "Automated Fault Detection and Diagnostics",
+    "Alm": "Alarm",
+    "Spt": "Setpoint"
+}
+```
+Notes
+Keep acronym mappings updated as new SEBA points are identified.
